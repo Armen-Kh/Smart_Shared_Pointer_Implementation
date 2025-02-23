@@ -2,6 +2,7 @@
 #define SMART_SHARED_POINTER_H
 
 #include <iostream>
+#include <stdexcept>
 
 template<class T>
 class smartSharedPointer
@@ -39,29 +40,28 @@ smartSharedPointer<T>::smartSharedPointer(const smartSharedPointer<T> &sp)
 	:ptr(sp.ptr)
 	, counter(sp.counter)
 {
-	++(*counter);
+	if (counter) {
+		++(*counter);
+	}
 }
 
 template<typename T>
 smartSharedPointer<T>& smartSharedPointer<T>::operator=(const smartSharedPointer& sp)
 {
-	if (this != &sp)
-	{
-		if (counter)
-		{
-			if (*counter == 1)
-			{
+	if (this != &sp) {
+		if (counter) {
+			if (*counter == 1) {
 				delete counter;
 				delete ptr;
-			}
-			else
-			{
+			} else {
 				--(*counter);
 			}
 		}
 		ptr = sp.ptr;
 		counter = sp.counter;
-		++(*counter);
+		if (counter) {
+			++(*counter);
+		}
 	}
 	return *this;
 }
@@ -86,16 +86,16 @@ smartSharedPointer<T>::~smartSharedPointer()
 template<typename T>
 unsigned int smartSharedPointer<T>::getCounter()
 {
-	return *counter;
+	return counter ? *counter : 0;
 }
 
 template<typename T>
 T& smartSharedPointer<T>::operator*()
 {
-	if (ptr)
-	{
-		return *ptr;
+	if (!ptr) {
+		throw std::runtime_error("Dereferencing a null smartSharedPointer!");
 	}
+	return *ptr;
 }
 
 template<typename T>
